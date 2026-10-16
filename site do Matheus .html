@@ -1,0 +1,560 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SGE - Sistema de Gestão de Eventos</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f5fa;
+    color: #24324b;
+}
+
+header {
+    background: #174a96;
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0 0 10px;
+}
+
+.container {
+    max-width: 1050px;
+    margin: auto;
+    padding: 25px 15px;
+}
+
+.painel, .evento {
+    background: white;
+    padding: 22px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px #00000012;
+}
+
+h2 {
+    color: #174a96;
+}
+
+.formulario {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #b9c7dc;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+.eventos {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(270px, 1fr)
+    );
+    gap: 20px;
+}
+
+.evento {
+    margin-bottom: 0;
+}
+
+.evento h3 {
+    margin-top: 0;
+    color: #174a96;
+}
+
+.info {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.vagas {
+    font-weight: bold;
+    color: #147347;
+}
+
+.lotado {
+    color: #b42318;
+}
+
+button {
+    background: #174a96;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 12px 16px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #10366f;
+}
+
+button:disabled {
+    background: #aab4c4;
+    cursor: not-allowed;
+}
+
+.cancelar {
+    background: #b42318;
+}
+
+.cancelar:hover {
+    background: #871b13;
+}
+
+.mensagem {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.sucesso {
+    color: #147347;
+}
+
+.erro {
+    color: #b42318;
+}
+
+.inscricao {
+    padding: 14px 0;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.inscricao:last-child {
+    border-bottom: none;
+}
+
+.inscricao p {
+    margin: 5px 0;
+}
+
+footer {
+    background: #174a96;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 35px;
+}
+
+@media (max-width: 600px) {
+    .formulario {
+        grid-template-columns: 1fr;
+    }
+
+    .inscricao {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Sistema de Gestão de Eventos</h1>
+    <p>SGE | Painel do Aluno</p>
+</header>
+
+<main class="container">
+
+<section class="painel">
+    <h2>Identificação do Aluno</h2>
+    <p>
+        Informe seus dados antes de realizar
+        uma inscrição.
+    </p>
+
+    <div class="formulario">
+        <div>
+            <label for="nome">Nome completo</label>
+            <input
+                type="text"
+                id="nome"
+                placeholder="Digite seu nome"
+                maxlength="100"
+            >
+        </div>
+
+        <div>
+            <label for="matricula">Matrícula</label>
+            <input
+                type="text"
+                id="matricula"
+                placeholder="Digite sua matrícula"
+                maxlength="30"
+            >
+        </div>
+    </div>
+
+    <p id="mensagem" class="mensagem"
+       aria-live="polite"></p>
+</section>
+
+<section>
+    <h2>Próximos Eventos</h2>
+    <p>
+        Confira as atividades disponíveis
+        e escolha aquelas de que deseja participar.
+    </p>
+
+    <div id="eventos" class="eventos"></div>
+</section>
+
+<section class="painel" style="margin-top:25px">
+    <h2>Minhas Inscrições</h2>
+    <p>
+        Digite sua matrícula acima para
+        consultar ou cancelar suas inscrições.
+    </p>
+
+    <button onclick="consultarInscricoes()">
+        Consultar inscrições
+    </button>
+
+    <div id="minhasInscricoes"></div>
+</section>
+
+</main>
+
+<footer>
+    <p>SGE - Sistema de Gestão de Eventos</p>
+    <p>Projeto escolar | Matheus</p>
+</footer>
+
+<script>
+const eventos = [
+    {
+        id: 1,
+        nome: "Palestra de Inteligência Artificial",
+        data: "20/11/2026",
+        horario: "14:00",
+        local: "Auditório Principal",
+        capacidade: 30
+    },
+    {
+        id: 2,
+        nome: "Oficina de Programação Web",
+        data: "25/11/2026",
+        horario: "09:00",
+        local: "Laboratório de Informática",
+        capacidade: 20
+    },
+    {
+        id: 3,
+        nome: "Workshop de Segurança Digital",
+        data: "30/11/2026",
+        horario: "15:30",
+        local: "Sala Multimídia",
+        capacidade: 25
+    }
+];
+
+// Recupera os dados salvos no navegador.
+function carregarInscricoes() {
+    try {
+        const dados = JSON.parse(
+            localStorage.getItem("sge_inscricoes")
+        );
+
+        return Array.isArray(dados) ? dados : [];
+    } catch {
+        return [];
+    }
+}
+
+let inscricoes = carregarInscricoes();
+
+function salvarDados() {
+    localStorage.setItem(
+        "sge_inscricoes",
+        JSON.stringify(inscricoes)
+    );
+}
+
+function mostrarMensagem(texto, tipo) {
+    const mensagem = document.getElementById(
+        "mensagem"
+    );
+
+    mensagem.textContent = texto;
+    mensagem.className = "mensagem " + tipo;
+}
+
+function obterDadosAluno() {
+    const nome = document.getElementById(
+        "nome"
+    ).value.trim();
+
+    const matricula = document.getElementById(
+        "matricula"
+    ).value.trim();
+
+    return { nome, matricula };
+}
+
+function contarInscritos(eventoId) {
+    return inscricoes.filter(
+        inscricao => inscricao.eventoId === eventoId
+    ).length;
+}
+
+function renderizarEventos() {
+    const container = document.getElementById(
+        "eventos"
+    );
+
+    container.innerHTML = "";
+
+    eventos.forEach(evento => {
+        const inscritos = contarInscritos(evento.id);
+        const vagas = Math.max(
+            0,
+            evento.capacidade - inscritos
+        );
+
+        const card = document.createElement("article");
+        card.className = "evento";
+
+        const titulo = document.createElement("h3");
+        titulo.textContent = evento.nome;
+
+        const detalhes = document.createElement("p");
+        detalhes.className = "info";
+        detalhes.textContent =
+            "Data: " + evento.data +
+            " | Horário: " + evento.horario +
+            " | Local: " + evento.local;
+
+        const vagasTexto = document.createElement("p");
+        vagasTexto.className =
+            vagas > 0 ? "vagas" : "vagas lotado";
+
+        vagasTexto.textContent =
+            vagas > 0
+                ? "Vagas disponíveis: " + vagas
+                : "Vagas esgotadas";
+
+        const botao = document.createElement("button");
+        botao.textContent =
+            vagas > 0 ? "Inscrever-se" : "Lotado";
+
+        botao.disabled = vagas === 0;
+
+        botao.addEventListener("click", () => {
+            realizarInscricao(evento.id);
+        });
+
+        card.append(
+            titulo,
+            detalhes,
+            vagasTexto,
+            botao
+        );
+
+        container.appendChild(card);
+    });
+}
+
+function realizarInscricao(eventoId) {
+    const aluno = obterDadosAluno();
+
+    if (!aluno.nome || !aluno.matricula) {
+        mostrarMensagem(
+            "Preencha seu nome e matrícula.",
+            "erro"
+        );
+        return;
+    }
+
+    const evento = eventos.find(
+        item => item.id === eventoId
+    );
+
+    if (!evento) {
+        mostrarMensagem(
+            "Evento não encontrado.",
+            "erro"
+        );
+        return;
+    }
+
+    const duplicada = inscricoes.some(
+        inscricao =>
+            inscricao.eventoId === eventoId &&
+            inscricao.matricula === aluno.matricula
+    );
+
+    if (duplicada) {
+        mostrarMensagem(
+            "Esta matrícula já está inscrita neste evento.",
+            "erro"
+        );
+        return;
+    }
+
+    const vagas =
+        evento.capacidade - contarInscritos(eventoId);
+
+    if (vagas <= 0) {
+        mostrarMensagem(
+            "Não existem vagas disponíveis.",
+            "erro"
+        );
+        return;
+    }
+
+    inscricoes.push({
+        id: Date.now().toString() +
+            Math.random().toString(36).slice(2),
+        eventoId: eventoId,
+        nome: aluno.nome,
+        matricula: aluno.matricula
+    });
+
+    salvarDados();
+    renderizarEventos();
+    consultarInscricoes();
+
+    mostrarMensagem(
+        "Inscrição realizada com sucesso!",
+        "sucesso"
+    );
+}
+
+function consultarInscricoes() {
+    const aluno = obterDadosAluno();
+
+    const container = document.getElementById(
+        "minhasInscricoes"
+    );
+
+    container.innerHTML = "";
+
+    if (!aluno.matricula) {
+        const aviso = document.createElement("p");
+        aviso.textContent =
+            "Informe sua matrícula para consultar.";
+        container.appendChild(aviso);
+        return;
+    }
+
+    const minhas = inscricoes.filter(
+        inscricao =>
+            inscricao.matricula === aluno.matricula
+    );
+
+    if (minhas.length === 0) {
+        const aviso = document.createElement("p");
+        aviso.textContent =
+            "Nenhuma inscrição encontrada.";
+        container.appendChild(aviso);
+        return;
+    }
+
+    minhas.forEach(inscricao => {
+        const evento = eventos.find(
+            item => item.id === inscricao.eventoId
+        );
+
+        if (!evento) return;
+
+        const linha = document.createElement("div");
+        linha.className = "inscricao";
+
+        const dados = document.createElement("div");
+
+        const titulo = document.createElement("strong");
+        titulo.textContent = evento.nome;
+
+        const detalhes = document.createElement("p");
+        detalhes.textContent =
+            inscricao.nome + " | " + evento.data;
+
+        dados.append(titulo, detalhes);
+
+        const botao = document.createElement("button");
+        botao.className = "cancelar";
+        botao.textContent = "Cancelar inscrição";
+
+        botao.addEventListener("click", () => {
+            cancelarInscricao(inscricao.id);
+        });
+
+        linha.append(dados, botao);
+        container.appendChild(linha);
+    });
+}
+
+function cancelarInscricao(inscricaoId) {
+    const aluno = obterDadosAluno();
+
+    const inscricao = inscricoes.find(
+        item => item.id === inscricaoId
+    );
+
+    if (
+        !inscricao ||
+        inscricao.matricula !== aluno.matricula
+    ) {
+        mostrarMensagem(
+            "Inscrição não encontrada.",
+            "erro"
+        );
+        return;
+    }
+
+    const confirmar = confirm(
+        "Deseja realmente cancelar esta inscrição?"
+    );
+
+    if (!confirmar) return;
+
+    inscricoes = inscricoes.filter(
+        item => item.id !== inscricaoId
+    );
+
+    salvarDados();
+    renderizarEventos();
+    consultarInscricoes();
+
+    mostrarMensagem(
+        "Inscrição cancelada com sucesso.",
+        "sucesso"
+    );
+}
+
+// Mostra os eventos ao abrir a página.
+renderizarEventos();
+</script>
+
+</body>
+</html>
